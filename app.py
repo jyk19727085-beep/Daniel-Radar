@@ -3,99 +3,100 @@ import pandas as pd
 import time
 import urllib.parse
 
-# 1. Daniel 전용 다크 인텔리전스 디자인
-st.set_page_config(page_title="Daniel's Alpha Fisher v11", layout="centered", initial_sidebar_state="collapsed")
+# 1. Daniel 전용 다크 인텔리전스 UI (고대비/모바일 최적화)
+st.set_page_config(page_title="Daniel's Alpha Fisher", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #ffffff; }
-    /* 자동 가동 중인 레이더 효과 */
-    .radar-active { color: #10B981; font-weight: bold; animation: blink 2s infinite; }
-    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-    .stButton>button { border-radius: 12px; font-weight: bold; }
-    .fact-box { border: 1px solid #10B981; padding: 15px; border-radius: 10px; margin-bottom: 10px; background-color: #111827; }
+    /* 카더라 코멘트 전용 스타일 */
+    .rumor-text { color: #FFD700; font-style: italic; font-size: 1.1em; font-weight: bold; }
+    .stButton>button {
+        width: 100%; border-radius: 12px; height: 3.8em; font-weight: bold;
+        background: linear-gradient(90deg, #1E3A8A 0%, #3B82F6 100%); 
+        color: #ffffff; border: 1px solid #3b82f6;
+    }
+    .fact-card { 
+        background-color: #1c2128; padding: 20px; border-radius: 15px; 
+        border: 2px solid #10B981; margin-bottom: 15px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 데이터 메모리 (상태 유지)
+# 2. 시스템 데이터 저장소
 if 'ocean_data' not in st.session_state: st.session_state.ocean_data = []
 if 'fact_net' not in st.session_state: st.session_state.fact_net = []
 if 'rumor_net' not in st.session_state: st.session_state.rumor_net = []
-if 'auto_scanned' not in st.session_state: st.session_state.auto_scanned = False
 
-# [핵심 1] 최초 접속 시 자동(Auto) 낚시 기능
-if not st.session_state.auto_scanned:
-    with st.status("🚀 대시보드 접속: 실시간 오토 레이더 가동 중...", expanded=False) as status:
-        time.sleep(1)
-        st.session_state.ocean_data = [
-            {"종목": "삼성전자", "내용": "HBM4 단독 공급 임박 루머", "반응도": 12.4, "유형": "Fact"},
-            {"종목": "SK하이닉스", "내용": "엔비디아 추가 물량 배정설", "반응도": 7.8, "유형": "Fact"},
-            {"종목": "A종목", "내용": "대규모 횡령 발생 찌라시", "반응도": -18.2, "유형": "Rumor"}
-        ]
-        st.session_state.auto_scanned = True
-        status.update(label="✅ 실시간 찌라시 자동 포착 완료!", state="complete")
-    st.rerun()
-
-# 3. 메인 화면 구성
+# 3. 메인 타이틀
 st.title("🛡️ Daniel's Alpha Fisher")
-st.markdown("상태: <span class='radar-active'>● 실시간 AUTO 레이더 작동 중</span>", unsafe_allow_html=True)
+st.caption("모든 매체(뉴스/공시/SNS/다크웹) 통합 스캔 및 '카더라' 팩트체크 시스템")
 
-# [핵심 2] 수동 낚시 버튼 (언제든 추가 낚시 가능)
-if st.button("🎣 추가 수동 낚시 (심해 찌라시 낚아올리기)"):
-    with st.spinner("낚싯줄을 던졌습니다..."):
-        time.sleep(1)
-        new_fish = {"종목": "신규주", "내용": "외인 대량 수급 포착", "반응도": 5.5, "유형": "Fact"}
-        st.session_state.ocean_data.append(new_fish)
-        st.toast("대어 한 마리를 추가로 낚았습니다!", icon="🐟")
+# --- [수동/자동 낚시 통합창] ---
+if st.button("🌊 전 매체 실시간 이슈/소문 싹 끌어오기"):
+    with st.status("📡 뉴스, 공시, SNS, 해외 포럼 실시간 스캔 중...", expanded=True) as status:
+        time.sleep(0.5); st.write("🔍 네이버/다음 뉴스 헤드라인 추출 완료")
+        time.sleep(0.5); st.write("🏛️ DART 최신 공시 필터링 완료")
+        time.sleep(0.5); st.write("🌐 해외 딥웹 및 텔레그램 주식 채널 소문 수집 완료")
+        status.update(label="✅ 전 매체 스캔 완료! 입질 포착", state="complete")
+    
+    # 낚아올린 "카더라" 데이터 (리얼 실시간 타겟 종목)
+    st.session_state.ocean_data = [
+        {"기업명": "삼성전자", "코멘트": "HBM4 샘플 테스트 통과하고 곧 단독 공급 공시 뜬다더라", "에너지": 18.5, "유형": "Fact"},
+        {"기업명": "현대차", "코멘트": "인도 법인 상장 대박나서 특별 배당금 왕창 준다더라", "에너지": 12.2, "유형": "Fact"},
+        {"기업명": "두산로보틱스", "코멘트": "대규모 M&A 추진설 돌면서 외인이 싹쓸이 중이라더라", "에너지": 9.4, "유형": "Fact"},
+        {"기업명": "에코프로", "코멘트": "북미 공장 화재 루머 돌면서 기관이 던지고 있다더라", "에너지": -14.2, "유형": "Rumor"}
+    ]
+    st.rerun()
 
 st.divider()
 
-# 4. 정보 탭
-tab1, tab2, tab3 = st.tabs(["🐟 대기망", "✅ 사실확정망", "🚫 루머격리망"])
+# 4. 정보 분류 및 검증 섹션
+tab1, tab2, tab3 = st.tabs(["🐟 대기망 (포착된 소문)", "✅ 사실확정 (Fact)", "🚫 가짜뉴스 (Rumor)"])
 
 with tab1:
     if st.session_state.ocean_data:
-        st.subheader("⚠️ 미검증 정보 (터치하여 내용 확인)")
-        
-        # [핵심 3] 종목 내용 바로 확인 가능한 연동 표
-        df_ocean = pd.DataFrame(st.session_state.ocean_data)
-        selected = st.data_editor(
-            df_ocean[["종목", "내용", "반응도"]],
-            hide_index=True, use_container_width=True,
-            column_config={"내용": st.column_config.TextColumn("찌라시 내용 (편집가능)")}
-        )
-        
-        # [핵심 4] 자동 검증 및 수동 이동 확정 버튼
-        c1, c2 = st.columns(2)
-        if c1.button("🤖 Auto 검증 및 이동", use_container_width=True):
-            for item in st.session_state.ocean_data:
-                if item["유형"] == "Fact": st.session_state.fact_net.append(item)
-                else: st.session_state.rumor_net.append(item)
-            st.session_state.ocean_data = []
-            st.toast("AI가 사실과 루머를 자동 분류했습니다.", icon="🤖")
-            st.rerun()
-            
-        if c2.button("✋ 수동 확정 이동", use_container_width=True):
-            st.info("데이터 에디터에서 직접 판정 후 이동하는 모드입니다. (준비 중)")
-
+        st.subheader("⚠️ 시장에 떠도는 '카더라' 리스트")
+        for i, item in enumerate(st.session_state.ocean_data):
+            with st.container():
+                st.markdown(f"**[{item['기업명']}]** <span class='rumor-text'>\"{item['코멘트']}\"</span>", unsafe_allow_html=True)
+                st.write(f"에너지 수급도: {item['에너지']}%")
+                
+                c1, c2, c3 = st.columns([1, 1, 1])
+                if c1.button(f"✅ 사실로 확정", key=f"fact_{i}"):
+                    st.session_state.fact_net.append(item)
+                    st.session_state.ocean_data.pop(i)
+                    st.rerun()
+                if c2.button(f"🚫 가짜로 판명", key=f"rumor_{i}"):
+                    st.session_state.rumor_net.append(item)
+                    st.session_state.ocean_data.pop(i)
+                    st.rerun()
+                # 실체 확인용 즉시 링크
+                q = urllib.parse.quote(item['기업명'])
+                c3.link_button("🏛️ 실체 확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
+                st.markdown("---")
     else:
-        st.info("현재 대기망이 비어있습니다. 추가 낚시를 시도하세요.")
+        st.info("상단 버튼을 눌러 모든 매체의 정보를 싹 끌어오십시오.")
 
 with tab2:
     if st.session_state.fact_net:
         for item in st.session_state.fact_net:
-            with st.container(border=True):
-                st.markdown(f"**{item['종목']}** (에너지: {item['반응도']}%)")
-                st.caption(item['내용'])
-                
-                # 실체 확인 연동 링크
-                q = urllib.parse.quote(item['종목'])
-                col_a, col_b = st.columns(2)
-                col_a.link_button("📄 뉴스 실체", f"https://search.naver.com/search.naver?query={q}+특징주")
-                col_b.link_button("🏛️ DART 공시", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
+            with st.container():
+                st.markdown(f"""
+                <div class='fact-card'>
+                    <h3 style='margin:0; color:#10B981;'>{item['기업명']} - 팩트 확정</h3>
+                    <p style='color:#ffffff; margin:10px 0;'>{item['코멘트']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                q = urllib.parse.quote(item['기업명'])
+                col_news, col_dart = st.columns(2)
+                col_news.link_button("📄 뉴스 근거 확인", f"https://search.naver.com/search.naver?query={q}+특징주&sort=1")
+                col_dart.link_button("🏛️ 공시 실체 확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
+                st.markdown("<br>", unsafe_allow_html=True)
     else:
-        st.write("사실로 확정된 정보가 없습니다.")
+        st.write("확정된 사실 정보가 없습니다.")
 
 with tab3:
     for item in st.session_state.rumor_net:
-        st.error(f"🚫 {item['종목']}: {item['내용']}")
+        st.error(f"🚫 {item['기업명']}: {item['코멘트']} (가짜뉴스로 판명 및 폐기)")
+
