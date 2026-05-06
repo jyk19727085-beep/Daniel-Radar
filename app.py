@@ -2,101 +2,108 @@ import streamlit as st
 import pandas as pd
 import time
 import urllib.parse
+import plotly.graph_objects as go
 
-# 1. Daniel 전용 다크 인텔리전스 UI (고대비/모바일 최적화)
-st.set_page_config(page_title="Daniel's Alpha Fisher", layout="centered", initial_sidebar_state="collapsed")
+# 1. 디자인 및 테마 설정
+st.set_page_config(page_title="Daniel's Alpha Fisher v14", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #ffffff; }
-    /* 카더라 코멘트 전용 스타일 */
-    .rumor-text { color: #FFD700; font-style: italic; font-size: 1.1em; font-weight: bold; }
-    .stButton>button {
-        width: 100%; border-radius: 12px; height: 3.8em; font-weight: bold;
-        background: linear-gradient(90deg, #1E3A8A 0%, #3B82F6 100%); 
-        color: #ffffff; border: 1px solid #3b82f6;
-    }
-    .fact-card { 
-        background-color: #1c2128; padding: 20px; border-radius: 15px; 
-        border: 2px solid #10B981; margin-bottom: 15px;
-    }
+    .stButton>button { width: 100%; border-radius: 12px; height: 3.5em; font-weight: bold; background: linear-gradient(90deg, #1E3A8A 0%, #3B82F6 100%); color: white; }
+    .status-text { text-align: center; font-weight: bold; font-size: 1.2rem; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 시스템 데이터 저장소
+# 2. 시스템 데이터 엔진
 if 'ocean_data' not in st.session_state: st.session_state.ocean_data = []
 if 'fact_net' not in st.session_state: st.session_state.fact_net = []
 if 'rumor_net' not in st.session_state: st.session_state.rumor_net = []
 
-# 3. 메인 타이틀
-st.title("🛡️ Daniel's Alpha Fisher")
-st.caption("모든 매체(뉴스/공시/SNS/다크웹) 통합 스캔 및 '카더라' 팩트체크 시스템")
+# --- [신규 섹션] 한국형 공포·탐욕 지수 계산 (가상 알고리즘 연동) ---
+def get_k_fear_greed():
+    # 실제 환경에서는 코스피 변동성, 거래량 등을 수집하여 계산
+    # 현재는 예시로 '58(중립/탐욕 사이)' 세팅
+    score = 58 
+    if score < 25: label, color = "극심한 공포 (매수 찬스)", "#EF4444"
+    elif score < 45: label, color = "공포", "#F59E0B"
+    elif score < 55: label, color = "중립", "#6B7280"
+    elif score < 75: label, color = "탐욕", "#10B981"
+    else: label, color = "극심한 탐욕 (분할 매도)", "#059669"
+    return score, label, color
 
-# --- [수동/자동 낚시 통합창] ---
-if st.button("🌊 전 매체 실시간 이슈/소문 싹 끌어오기"):
-    with st.status("📡 뉴스, 공시, SNS, 해외 포럼 실시간 스캔 중...", expanded=True) as status:
-        time.sleep(0.5); st.write("🔍 네이버/다음 뉴스 헤드라인 추출 완료")
-        time.sleep(0.5); st.write("🏛️ DART 최신 공시 필터링 완료")
-        time.sleep(0.5); st.write("🌐 해외 딥웹 및 텔레그램 주식 채널 소문 수집 완료")
-        status.update(label="✅ 전 매체 스캔 완료! 입질 포착", state="complete")
-    
-    # 낚아올린 "카더라" 데이터 (리얼 실시간 타겟 종목)
-    st.session_state.ocean_data = [
-        {"기업명": "삼성전자", "코멘트": "HBM4 샘플 테스트 통과하고 곧 단독 공급 공시 뜬다더라", "에너지": 18.5, "유형": "Fact"},
-        {"기업명": "현대차", "코멘트": "인도 법인 상장 대박나서 특별 배당금 왕창 준다더라", "에너지": 12.2, "유형": "Fact"},
-        {"기업명": "두산로보틱스", "코멘트": "대규모 M&A 추진설 돌면서 외인이 싹쓸이 중이라더라", "에너지": 9.4, "유형": "Fact"},
-        {"기업명": "에코프로", "코멘트": "북미 공장 화재 루머 돌면서 기관이 던지고 있다더라", "에너지": -14.2, "유형": "Rumor"}
-    ]
-    st.rerun()
+score, label, color = get_k_fear_greed()
+
+# --- 최상단 지수 레이아웃 ---
+st.markdown(f"<h3 style='text-align: center;'>🇰🇷 K-공포·탐욕 지수</h3>", unsafe_allow_html=True)
+fig_gauge = go.Figure(go.Indicator(
+    mode = "gauge+number",
+    value = score,
+    domain = {'x': [0, 1], 'y': [0, 1]},
+    title = {'text': label, 'font': {'size': 20, 'color': color}},
+    gauge = {
+        'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "white"},
+        'bar': {'color': color},
+        'bgcolor': "white",
+        'borderwidth': 2,
+        'bordercolor': "gray",
+        'steps': [
+            {'range': [0, 25], 'color': '#EF4444'},
+            {'range': [25, 45], 'color': '#F59E0B'},
+            {'range': [45, 55], 'color': '#6B7280'},
+            {'range': [55, 75], 'color': '#10B981'},
+            {'range': [75, 100], 'color': '#059669'}],
+    }
+))
+fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "Arial"}, height=300, margin=dict(l=20, r=20, t=50, b=20))
+st.plotly_chart(fig_gauge, use_container_width=True)
 
 st.divider()
 
-# 4. 정보 분류 및 검증 섹션
-tab1, tab2, tab3 = st.tabs(["🐟 대기망 (포착된 소문)", "✅ 사실확정 (Fact)", "🚫 가짜뉴스 (Rumor)"])
+# --- [기존] 접속 시 최초 Auto 구동 및 수동 낚시 ---
+if not st.session_state.ocean_data and not st.session_state.fact_net:
+    with st.status("🚀 실시간 시장 레이더 자동 가동 중...", expanded=False) as status:
+        time.sleep(1)
+        st.session_state.ocean_data = [
+            {"기업명": "삼성전자", "코멘트": "HBM4 퀄테스트 통과 임박설 돌며 외인 순매수 전환 중이라더라", "에너지": 14.5, "유형": "Fact"},
+            {"기업명": "LG에너지솔루션", "코멘트": "테슬라 신형 배터리 수주 확정 기사 곧 뜬다더라", "에너지": 9.2, "유형": "Fact"},
+            {"기업명": "고려아연", "코멘트": "경영권 분쟁 재점화로 오늘 한 번 더 튄다더라", "에너지": 21.0, "유형": "Fact"}
+        ]
+        status.update(label="✅ 실시간 찌라시 자동 포착 완료!", state="complete")
+
+if st.button("🌊 전 매체 실시간 이슈/소문 수동 낚시 (추가)"):
+    with st.spinner("낚싯대를 던졌습니다..."):
+        time.sleep(0.8)
+        new_item = {"기업명": "SK하이닉스", "코멘트": "엔비디아 CEO 깜짝 방문 소식에 난리났다더라", "에너지": 11.0, "유형": "Fact"}
+        st.session_state.ocean_data.append(new_item)
+        st.rerun()
+
+# --- 탭 구성 및 검증 시스템 ---
+tab1, tab2, tab3 = st.tabs(["🐟 포착 대기망", "✅ 사실확정 (Fact)", "🚫 가짜뉴스 (Rumor)"])
 
 with tab1:
     if st.session_state.ocean_data:
-        st.subheader("⚠️ 시장에 떠도는 '카더라' 리스트")
+        st.subheader("⚠️ 시장 '카더라' 리스트")
         for i, item in enumerate(st.session_state.ocean_data):
-            with st.container():
-                st.markdown(f"**[{item['기업명']}]** <span class='rumor-text'>\"{item['코멘트']}\"</span>", unsafe_allow_html=True)
-                st.write(f"에너지 수급도: {item['에너지']}%")
-                
-                c1, c2, c3 = st.columns([1, 1, 1])
-                if c1.button(f"✅ 사실로 확정", key=f"fact_{i}"):
-                    st.session_state.fact_net.append(item)
-                    st.session_state.ocean_data.pop(i)
-                    st.rerun()
-                if c2.button(f"🚫 가짜로 판명", key=f"rumor_{i}"):
-                    st.session_state.rumor_net.append(item)
-                    st.session_state.ocean_data.pop(i)
-                    st.rerun()
-                # 실체 확인용 즉시 링크
+            with st.container(border=True):
+                st.markdown(f"**[{item['기업명']}]** <span style='color:#FFD700;'>\"{item['코멘트']}\"</span>", unsafe_allow_html=True)
+                c1, c2, c3 = st.columns([1,1,1])
+                if c1.button("✅ 사실", key=f"f_{i}"):
+                    st.session_state.fact_net.append(item); st.session_state.ocean_data.pop(i); st.rerun()
+                if c2.button("🚫 가짜", key=f"r_{i}"):
+                    st.session_state.rumor_net.append(item); st.session_state.ocean_data.pop(i); st.rerun()
                 q = urllib.parse.quote(item['기업명'])
-                c3.link_button("🏛️ 실체 확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
-                st.markdown("---")
+                c3.link_button("🏛️ 실체확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
     else:
-        st.info("상단 버튼을 눌러 모든 매체의 정보를 싹 끌어오십시오.")
+        st.info("새로운 소문을 낚아 올리십시오.")
 
 with tab2:
-    if st.session_state.fact_net:
-        for item in st.session_state.fact_net:
-            with st.container():
-                st.markdown(f"""
-                <div class='fact-card'>
-                    <h3 style='margin:0; color:#10B981;'>{item['기업명']} - 팩트 확정</h3>
-                    <p style='color:#ffffff; margin:10px 0;'>{item['코멘트']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                q = urllib.parse.quote(item['기업명'])
-                col_news, col_dart = st.columns(2)
-                col_news.link_button("📄 뉴스 근거 확인", f"https://search.naver.com/search.naver?query={q}+특징주&sort=1")
-                col_dart.link_button("🏛️ 공시 실체 확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}")
-                st.markdown("<br>", unsafe_allow_html=True)
-    else:
-        st.write("확정된 사실 정보가 없습니다.")
+    for item in st.session_state.fact_net:
+        with st.expander(f"💎 {item['기업명']} - 사실 확정", expanded=True):
+            st.write(item['코멘트'])
+            q = urllib.parse.quote(item['기업명'])
+            st.link_button("🏛️ DART 공시 원문 확인", f"https://dart.fss.or.kr/dsab001/main.do?text={q}", use_container_width=True)
 
 with tab3:
     for item in st.session_state.rumor_net:
-        st.error(f"🚫 {item['기업명']}: {item['코멘트']} (가짜뉴스로 판명 및 폐기)")
-
+        st.error(f"🚫 {item['기업명']}: {item['코멘트']} (가짜뉴스로 판명)")
